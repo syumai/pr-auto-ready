@@ -77,7 +77,8 @@ function parseArgs(args: string[]): ParsedArgs {
     if (arg === "--help" || arg === "-h") {
       result.help = true;
       break;
-    } else if (arg === "--interval") {
+    }
+    if (arg === "--interval") {
       if (i + 1 >= args.length) {
         console.error("Error: --interval requires a value");
         showUsage();
@@ -94,17 +95,17 @@ function parseArgs(args: string[]): ParsedArgs {
       }
       result.interval = intervalValue;
       i += 2;
-    } else {
-      if (!result.prNumber) {
-        result.prNumber = arg;
-      } else if (result.repo === undefined) {
-        result.repo = arg;
-      } else {
-        console.error("Error: Too many arguments");
-        showUsage();
-      }
-      i++;
+      continue;
     }
+    if (!result.prNumber) {
+      result.prNumber = arg;
+    } else if (result.repo === undefined) {
+      result.repo = arg;
+    } else {
+      console.error("Error: Too many arguments");
+      showUsage();
+    }
+    i++;
   }
 
   return result;
