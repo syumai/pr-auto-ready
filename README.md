@@ -1,5 +1,8 @@
 # pr-auto-ready
 
+[![npm version](https://img.shields.io/npm/v/pr-auto-ready.svg)](https://www.npmjs.com/package/pr-auto-ready)
+[![license](https://img.shields.io/npm/l/pr-auto-ready.svg)](https://github.com/syumai/pr-auto-ready/blob/main/LICENSE)
+
 Automatically marks GitHub PRs as ready for review when all checks pass.
 
 ## Quick Start
