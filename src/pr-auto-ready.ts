@@ -239,6 +239,11 @@ async function main(): Promise<void> {
     repo = parsedArgs.repo;
   }
 
+  if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repo)) {
+    console.error("Error: Invalid repository format. Expected format: owner/repository");
+    process.exit(1);
+  }
+
   console.log(`Validating PR #${prNumber} in repository ${repo}...`);
   try {
     const prInfo = await validatePR(prNumber, repo);
