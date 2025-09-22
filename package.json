@@ -1,6 +1,6 @@
 {
   "name": "pr-auto-ready",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A CLI tool to automatically mark GitHub PRs as ready for review when all checks pass",
   "type": "module",
   "main": "./bin/pr-auto-ready",
