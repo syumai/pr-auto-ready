@@ -1,0 +1,13 @@
+# Development tools and configurations
+.serena/
+.claude/
+
+# Package managers
+pnpm-lock.yaml
+
+# Build configurations
+tsconfig.json
+.gitignore
+
+# Source files (compiled version in bin/ is used)
+src/
