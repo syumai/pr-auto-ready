@@ -151,7 +151,7 @@ async function autoDetectPRNumber(): Promise<string> {
   }
 }
 
-async function validatePR(prNumber: string, repo: string): Promise<PRInfo> {
+async function validatePR(prNumber: number, repo: string): Promise<PRInfo> {
   try {
     const output = await runCommand(
       `gh pr view ${prNumber} --repo ${repo} --json title,state`
@@ -171,7 +171,7 @@ async function validatePR(prNumber: string, repo: string): Promise<PRInfo> {
   }
 }
 
-async function getPRChecks(prNumber: string, repo: string): Promise<Check[]> {
+async function getPRChecks(prNumber: number, repo: string): Promise<Check[]> {
   try {
     const output = await runCommand(
       `gh pr checks ${prNumber} --repo ${repo} --json state,name`
@@ -186,7 +186,7 @@ function sleep(seconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
-async function markPRReady(prNumber: string, repo: string): Promise<void> {
+async function markPRReady(prNumber: number, repo: string): Promise<void> {
   try {
     await runCommand(`gh pr ready ${prNumber} --repo ${repo}`);
   } catch (error) {
@@ -206,43 +206,51 @@ async function main(): Promise<void> {
     showUsage();
   }
 
-  let prNumber: string;
-  if (!parsedArgs.prNumber) {
-    console.log("No PR number specified, attempting to auto-detect...");
-    try {
-      prNumber = await autoDetectPRNumber();
-      console.log(`Auto-detected PR number: ${prNumber}`);
-    } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
-      showUsage();
+  const prNumber: number = await (async () => {
+    const prNumberString = !parsedArgs.prNumber
+      ? await (async () => {
+          console.log("No PR number specified, attempting to auto-detect...");
+          try {
+            const detected = await autoDetectPRNumber();
+            console.log(`Auto-detected PR number: ${detected}`);
+            return detected;
+          } catch (error) {
+            console.error(`Error: ${(error as Error).message}`);
+            showUsage();
+          }
+        })()
+      : parsedArgs.prNumber;
+
+    // Validate and convert prNumber to number
+    const prNumberValue = Number(prNumberString);
+    if (Number.isNaN(prNumberValue) || prNumberValue <= 0 || !Number.isInteger(prNumberValue)) {
+      console.error("Error: PR number must be a positive integer");
+      process.exit(1);
     }
-  } else {
-    prNumber = parsedArgs.prNumber;
-  }
+    return prNumberValue;
+  })();
 
-  if (!/^\d+$/.test(prNumber)) {
-    console.error("Error: PR number must be a positive integer");
-    process.exit(1);
-  }
+  const repo: string = await (async () => {
+    const repoName = parsedArgs.repo === undefined
+      ? await (async () => {
+          console.log("No repository specified, attempting to auto-detect...");
+          try {
+            const detected = await autoDetectRepo();
+            console.log(`Auto-detected repository: ${detected}`);
+            return detected;
+          } catch (error) {
+            console.error(`Error: ${(error as Error).message}`);
+            showUsage();
+          }
+        })()
+      : parsedArgs.repo;
 
-  let repo: string;
-  if (parsedArgs.repo === undefined) {
-    console.log("No repository specified, attempting to auto-detect...");
-    try {
-      repo = await autoDetectRepo();
-      console.log(`Auto-detected repository: ${repo}`);
-    } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
-      showUsage();
+    if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repoName)) {
+      console.error("Error: Invalid repository format. Expected format: owner/repository");
+      process.exit(1);
     }
-  } else {
-    repo = parsedArgs.repo;
-  }
-
-  if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repo)) {
-    console.error("Error: Invalid repository format. Expected format: owner/repository");
-    process.exit(1);
-  }
+    return repoName;
+  })();
 
   console.log(`Validating PR #${prNumber} in repository ${repo}...`);
   try {
